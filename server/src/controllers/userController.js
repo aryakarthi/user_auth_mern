@@ -108,7 +108,7 @@ const getProfile = asyncHandler(async (req, res) => {
 const updateProfile = asyncHandler(async (req, res) => {
   const { password } = req.body;
 
-  if (password.length < 8) {
+  if (password && password.length < 8) {
     res.status(400);
     throw new Error("Password must be atleast 8 characters length!");
   }
