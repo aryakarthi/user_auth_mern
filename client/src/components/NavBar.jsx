@@ -1,8 +1,10 @@
 import { Nav, Navbar, Container, NavDropdown } from "react-bootstrap";
 import { Link, NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const NavBar = () => {
-  const user = false;
+  const { isLoggedIn } = useSelector((state) => state.auth);
+
   const logoutHandler = () => {};
   return (
     <>
@@ -13,7 +15,7 @@ const NavBar = () => {
           </Link>
 
           <Nav className="ms-auto">
-            {user ? (
+            {isLoggedIn ? (
               <>
                 <NavDropdown title="Arya" id="username">
                   <Nav.Link as={Link} to={"/profile"}>
@@ -21,7 +23,6 @@ const NavBar = () => {
                   </Nav.Link>
                   <Nav.Link
                     as={Link}
-                    to={"/logout"}
                     onClick={() => logoutHandler}
                   >
                     Logout

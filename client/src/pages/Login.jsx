@@ -15,8 +15,9 @@ const Login = () => {
         toastId.current = toast.error("Email and Password must be provided!");
       }
       return;
+    } else {
+      console.log(`${email} - ${password}`);
     }
-    console.log(`${email} - ${password}`);
   };
 
   return (
