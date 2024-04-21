@@ -19,7 +19,7 @@ const NavBar = () => {
       dispatch(logout());
       navigate("/", { replace: true });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       toast.error(error?.data?.message || error?.error);
     }
   };
@@ -28,7 +28,7 @@ const NavBar = () => {
       <Navbar bg="dark" data-bs-theme="dark">
         <Container>
           <Link to="/" className="navbar-brand">
-            logo
+            User Auth
           </Link>
 
           <Nav className="ms-auto">
