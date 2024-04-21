@@ -1,29 +1,46 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "react-toastify";
+import { Button, Form, Spinner } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
 
-import { Button, Form } from "react-bootstrap";
 import { FormContainer } from "../components";
+import { useUpdateProfileAPIMutation } from "../store/slices/userApiSlice";
+import { login } from "../store/slices/authSlice";
 
 const UpdateProfile = () => {
+  const dispatch = useDispatch();
+  const [updateProfileAPI, { isLoading }] = useUpdateProfileAPIMutation();
+  const { userData } = useSelector((state) => state.auth);
+
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const toastId = useRef(null);
 
-  const updateHandler = (e) => {
+  const updateHandler = async (e) => {
     e.preventDefault();
-    if (!name || !password || !confirmPassword) {
-      if (!toast.isActive(toastId.current)) {
-        toastId.current = toast.error("All fields are required!");
-      }
-      return;
-    }
+    
     if (password !== confirmPassword) {
       toast.error("Password and Confirm Password are must be same!");
     } else {
-      console.log(`${name} - ${password}- ${confirmPassword}`);
+      try {
+        const response = await updateProfileAPI({
+          name,
+          password,
+        }).unwrap();
+        dispatch(login({ ...response }));
+        toast.success("Profile updated successfully!");
+      } catch (error) {
+        toast.error(error?.data?.message || error?.error);
+      } finally {
+        setPassword("");
+        setConfirmPassword("");
+      }
     }
   };
+
+  useEffect(() => {
+    setName(userData?.name);
+  }, [userData?.name]);
 
   return (
     <FormContainer>
@@ -65,7 +82,20 @@ const UpdateProfile = () => {
           className="mt-3"
           onClick={updateHandler}
         >
-          Update
+          {isLoading ? (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />{" "}
+              Loading..
+            </>
+          ) : (
+            "Update"
+          )}
         </Button>
       </Form>
     </FormContainer>

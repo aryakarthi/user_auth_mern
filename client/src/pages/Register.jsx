@@ -1,17 +1,26 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "react-toastify";
+import { Form, Button, Spinner } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 import { FormContainer } from "../components";
-import { Form, Button } from "react-bootstrap";
+import { useRegisterAPIMutation } from "../store/slices/userApiSlice";
+import { login } from "../store/slices/authSlice";
 
 const Register = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [registerAPI, {isLoading}] = useRegisterAPIMutation();
+  const toastId = useRef(null);
+  const { isLoggedIn } = useSelector((state) => state.auth);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const toastId = useRef(null);
 
-  const registerHandler = (e) => {
+  const registerHandler = async (e) => {
     e.preventDefault();
     if (!name || !email || !password || !confirmPassword) {
       if (!toast.isActive(toastId.current)) {
@@ -22,9 +31,21 @@ const Register = () => {
     if (password !== confirmPassword) {
       toast.error("Password and Confirm Password are must be same!");
     } else {
-      console.log(`${name} -${email} - ${password}- ${confirmPassword}`);
+      try {
+        const response = await registerAPI({ name, email, password }).unwrap();
+        dispatch(login({ ...response }));
+        navigate("/profile");
+      } catch (error) {
+        toast.error(error?.data?.message || error?.error);
+      }
     }
   };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/profile");
+    }
+  }, [navigate, isLoggedIn]);
 
   return (
     <FormContainer>
@@ -76,7 +97,19 @@ const Register = () => {
           className="mt-3"
           onClick={registerHandler}
         >
-          Register
+          {isLoading ? (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />{" "}Loading..
+            </>
+          ) : (
+            "Register"
+          )}
         </Button>
       </Form>
     </FormContainer>

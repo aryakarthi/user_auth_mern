@@ -1,14 +1,25 @@
-import { Form, Button } from "react-bootstrap";
-import { FormContainer } from "../components";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { Form, Button, Spinner } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+
+import { FormContainer } from "../components";
+import { login } from "../store/slices/authSlice";
+import { useLoginAPIMutation } from "../store/slices/userApiSlice";
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [loginAPI, { isLoading }] = useLoginAPIMutation();
+
+  const { isLoggedIn } = useSelector((state) => state.auth);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const toastId = useRef(null);
 
-  const loginHandler = (e) => {
+  const loginHandler = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       if (!toast.isActive(toastId.current)) {
@@ -16,9 +27,21 @@ const Login = () => {
       }
       return;
     } else {
-      console.log(`${email} - ${password}`);
+      try {
+        const response = await loginAPI({ email, password }).unwrap();
+        dispatch(login({ ...response }));
+        navigate("/profile");
+      } catch (error) {
+        toast.error(error?.data?.message || error?.error);
+      }
     }
   };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/profile");
+    }
+  }, [navigate, isLoggedIn]);
 
   return (
     <FormContainer>
@@ -49,7 +72,19 @@ const Login = () => {
           className="mt-3"
           onClick={loginHandler}
         >
-          Login
+          {isLoading ? (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />{" "}Loading..
+            </>
+          ) : (
+            "Login"
+          )}
         </Button>
       </Form>
     </FormContainer>

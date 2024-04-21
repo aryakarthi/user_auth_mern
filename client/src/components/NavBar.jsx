@@ -1,11 +1,28 @@
 import { Nav, Navbar, Container, NavDropdown } from "react-bootstrap";
-import { Link, NavLink } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+
+import { logout } from "../store/slices/authSlice";
+import { useLogoutAPIMutation } from "../store/slices/userApiSlice";
 
 const NavBar = () => {
-  const { isLoggedIn } = useSelector((state) => state.auth);
+  const { isLoggedIn, userData } = useSelector((state) => state.auth);
 
-  const logoutHandler = () => {};
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [logoutAPI] = useLogoutAPIMutation();
+
+  const logoutHandler = async () => {
+    try {
+      await logoutAPI().unwrap();
+      dispatch(logout());
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.log(error)
+      toast.error(error?.data?.message || error?.error);
+    }
+  };
   return (
     <>
       <Navbar bg="dark" data-bs-theme="dark">
@@ -17,14 +34,11 @@ const NavBar = () => {
           <Nav className="ms-auto">
             {isLoggedIn ? (
               <>
-                <NavDropdown title="Arya" id="username">
+                <NavDropdown title={userData?.name} id="username">
                   <Nav.Link as={Link} to={"/profile"}>
                     Profile
                   </Nav.Link>
-                  <Nav.Link
-                    as={Link}
-                    onClick={() => logoutHandler}
-                  >
+                  <Nav.Link as={Link} onClick={logoutHandler}>
                     Logout
                   </Nav.Link>
                 </NavDropdown>
